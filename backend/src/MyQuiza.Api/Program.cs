@@ -20,11 +20,10 @@ builder.Services.AddSupabaseAuth(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference(); // UI at /scalar/v1
-}
+// API docs available in all environments (spec exposes no secrets;
+// auth-gated endpoints still require a token).
+app.MapOpenApi();
+app.MapScalarApiReference(); // UI at /scalar/v1
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -39,7 +38,7 @@ app.MapGet("/", () => Results.Ok(new
     status = "ok",
     health = "/health",
     api = "/api/v1",
-    docs = "/scalar/v1 (development only)",
+    docs = "/scalar/v1",
 })).AllowAnonymous();
 
 app.Run();
