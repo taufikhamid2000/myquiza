@@ -32,4 +32,14 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
+// Friendly root so the base URL isn't a bare 404 — this is an API, not a site.
+app.MapGet("/", () => Results.Ok(new
+{
+    service = "MyQuiza API",
+    status = "ok",
+    health = "/health",
+    api = "/api/v1",
+    docs = "/scalar/v1 (development only)",
+})).AllowAnonymous();
+
 app.Run();
