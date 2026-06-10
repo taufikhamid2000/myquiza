@@ -1,0 +1,32 @@
+# Render Blueprint for the MyQuiza API.
+# On Render, connect the `myquiza` repo and set the service Root Directory to `backend`
+# (so these paths and the Dockerfile resolve correctly).
+#
+# NOTE: unlike BilikSewa, this service does NOT provision a Render database —
+# it connects to EduBridge's existing Supabase Postgres. So there is no `databases:` block;
+# the connection string is a dashboard-set secret instead.
+
+services:
+  - type: web
+    name: myquiza-api
+    runtime: docker
+    plan: free
+    region: singapore            # closest Render region to Malaysia
+    dockerfilePath: Dockerfile    # relative to Root Directory (backend/)
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true              # redeploy on push to the connected branch
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # The container entrypoint binds to $PORT automatically (Render injects it).
+      - key: SUPABASE__AUDIENCE
+        value: authenticated
+      # ---- Secrets: set these in the Render dashboard (not stored in git) ----
+      - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
+        sync: false               # EduBridge's Supabase Postgres (session pooler) connection string
+      - key: SUPABASE__ISSUER
+        sync: false               # https://<your-project-ref>.supabase.co/auth/v1
+      # Alternative to SUPABASE__ISSUER for legacy projects (HS256). Uncomment if needed:
+      # - key: SUPABASE__JWTSECRET
+      #   sync: false
