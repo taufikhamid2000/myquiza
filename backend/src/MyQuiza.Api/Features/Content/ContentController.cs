@@ -7,16 +7,24 @@ using MyQuiza.Api.Dtos;
 namespace MyQuiza.Api.Features.Content;
 
 [ApiController]
-public class ContentController(AppDbContext db) : ControllerBase
+public class ContentController(AppDbContext db, IAuthorizationService authz) : ControllerBase
 {
     [HttpGet("api/v1/subjects")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SubjectDto>>> Subjects()
+    public async Task<ActionResult<IEnumerable<SubjectDto>>> Subjects([FromQuery] bool includeDisabled = false)
     {
-        var items = await db.Subjects
-            .Where(s => !s.IsDisabled)
+        if (includeDisabled)
+        {
+            var result = await authz.AuthorizeAsync(User, "Moderator");
+            if (!result.Succeeded) return Forbid();
+        }
+
+        var query = db.Subjects.AsQueryable();
+        if (!includeDisabled) query = query.Where(s => !s.IsDisabled);
+
+        var items = await query
             .OrderBy(s => s.CategoryPriority ?? 999).ThenBy(s => s.OrderIndex ?? 0).ThenBy(s => s.Name)
-            .Select(s => new SubjectDto(s.Id, s.Name, s.Slug, s.Description, s.Icon, s.Category, s.OrderIndex))
+            .Select(s => new SubjectDto(s.Id, s.Name, s.Slug, s.Description, s.Icon, s.Category, s.OrderIndex, s.IsDisabled))
             .ToListAsync();
         return items;
     }
