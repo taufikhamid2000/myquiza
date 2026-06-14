@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using MyQuiza.Api.Auth;
 using MyQuiza.Api.Data;
 using Scalar.AspNetCore;
@@ -6,7 +8,43 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    // Declare Bearer security scheme so Scalar shows the Authorize button.
+    // Also add the security requirement to every [Authorize] operation.
+    options.AddDocumentTransformer((doc, _, _) =>
+    {
+        doc.Components ??= new OpenApiComponents();
+        doc.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        doc.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            BearerFormat = "JWT",
+            Description = "Paste your Supabase access_token (from EduBridge localStorage or Supabase Auth API).",
+        };
+        return Task.CompletedTask;
+    });
+
+    // Lock icon on every [Authorize] endpoint.
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        var hasAuthorize = context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().Any();
+        var hasAllowAnonymous = context.Description.ActionDescriptor.EndpointMetadata
+            .OfType<Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute>().Any();
+
+        if (hasAuthorize && !hasAllowAnonymous)
+        {
+            operation.Security ??= [];
+            operation.Security.Add(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", null!)] = []
+            });
+        }
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddHealthChecks();
 
 // Maps onto EduBridge's existing Supabase Postgres. snake_case columns/tables.
