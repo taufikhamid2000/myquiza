@@ -97,16 +97,30 @@ public static class AuthExtensions
                     ValidateLifetime = true,
                     NameClaimType = "sub",
                     RoleClaimType = "role",
+                    // Supabase stamps a `kid` on legacy HS256 tokens, but the symmetric
+                    // secret is never published to JWKS. Without this, the handler filters
+                    // signing keys by `kid`, finds no match, and fails with
+                    // "signature key was not found". Trying all configured keys lets the
+                    // shared secret validate the token regardless of the header `kid`.
+                    TryAllIssuerSigningKeys = true,
                 };
 
                 if (!string.IsNullOrWhiteSpace(jwtSecret))
                 {
+                    // HS256 path: validate against the project's shared JWT secret.
+                    // This is required while the project signs tokens symmetrically
+                    // (JWKS is empty). To move to asymmetric keys later, migrate the
+                    // Supabase project to JWT signing keys and unset Supabase:JwtSecret
+                    // so the issuer/JWKS branch below takes over.
                     options.TokenValidationParameters.IssuerSigningKey =
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
                     options.TokenValidationParameters.ValidateIssuerSigningKey = true;
                 }
                 else if (!string.IsNullOrWhiteSpace(issuer))
                 {
+                    // JWKS path (asymmetric keys): only works once Supabase publishes
+                    // public keys at /.well-known/jwks.json. An empty JWKS here means the
+                    // project is still on the legacy HS256 secret — use Supabase:JwtSecret.
                     options.Authority = issuer;
                     options.MetadataAddress = $"{issuer.TrimEnd('/')}/.well-known/openid-configuration";
                 }
