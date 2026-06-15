@@ -26,7 +26,9 @@ services:
       - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
         sync: false               # EduBridge's Supabase Postgres (session pooler) connection string
       - key: SUPABASE__ISSUER
-        sync: false               # https://<your-project-ref>.supabase.co/auth/v1
-      # Alternative to SUPABASE__ISSUER for legacy projects (HS256). Uncomment if needed:
-      # - key: SUPABASE__JWTSECRET
-      #   sync: false
+        sync: false               # https://<your-project-ref>.supabase.co/auth/v1 — validates the iss claim
+      # This project signs tokens with the legacy HS256 secret (its JWKS endpoint is empty),
+      # so the API validates against the shared JWT secret rather than JWKS. Required.
+      # Find it in Supabase: Settings -> API -> JWT Settings -> JWT Secret (a raw string, not a JWT).
+      - key: SUPABASE__JWTSECRET
+        sync: false
