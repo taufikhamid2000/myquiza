@@ -62,8 +62,10 @@ public class Quiz
     public Guid? VerifiedBy { get; set; }
     public DateTime? VerifiedAt { get; set; }
     public string? VerificationFeedback { get; set; }
+    // NOTE: the quizzes table has NO updated_at column (unlike every other table),
+    // so this entity must not declare UpdatedAt — EF would emit a SELECT/INSERT for a
+    // column that doesn't exist and every full-entity load/write would 500.
     public DateTime? CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
 
     public Topic? Topic { get; set; }
     public ICollection<Question> Questions { get; set; } = [];

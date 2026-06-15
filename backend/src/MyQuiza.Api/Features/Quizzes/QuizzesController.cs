@@ -49,7 +49,6 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
             CreatedBy = userId.ToString(),
             Verified = false,
             CreatedAt = now,
-            UpdatedAt = now,
             Questions = body.Questions.Select(q => new Question
             {
                 Id = Guid.NewGuid(),
@@ -90,7 +89,6 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
         quiz.VerifiedBy = userId;
         quiz.VerifiedAt = DateTime.UtcNow;
         quiz.VerificationFeedback = body.Feedback;
-        quiz.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
 
         return NoContent();
