@@ -41,6 +41,7 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
 
         var score = total == 0 ? 0 : (int)Math.Round(correct * 100.0 / total);
         var now = DateTime.UtcNow;
+        var isVerified = quiz.Verified ?? false;
 
         await using var tx = await db.Database.BeginTransactionAsync();
 
@@ -57,43 +58,50 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
             MaxScore = 100,
             CorrectAnswers = correct,
             TotalQuestions = total,
-            IsVerifiedQuiz = quiz.Verified ?? false,
+            IsVerifiedQuiz = isVerified,
             CreatedAt = now,
             UpdatedAt = now,
         };
         db.QuizAttempts.Add(attempt);
 
-        // Upsert topic progress (unique on user_id + topic_id).
-        var status = score >= 70 ? "completed" : "in_progress";
-        var progress = await db.UserTopicProgress
-            .FirstOrDefaultAsync(p => p.UserId == userId && p.TopicId == quiz.TopicId);
-        if (progress is null)
+        // Only VERIFIED quizzes contribute to topic progress (business rule). Attempts on
+        // unverified quizzes are still recorded above (history) and scored, but don't
+        // upsert user_topic_progress, so practice on pending-review quizzes can't mark a
+        // topic complete or overwrite its score.
+        if (isVerified)
         {
-            db.UserTopicProgress.Add(new UserTopicProgress
+            // Upsert topic progress (unique on user_id + topic_id).
+            var status = score >= 70 ? "completed" : "in_progress";
+            var progress = await db.UserTopicProgress
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.TopicId == quiz.TopicId);
+            if (progress is null)
             {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                TopicId = quiz.TopicId,
-                Status = status,
-                LastAttemptedAt = now,
-                Score = score,
-                Attempts = 1,
-                CreatedAt = now,
-                UpdatedAt = now,
-            });
-        }
-        else
-        {
-            progress.Status = status;
-            progress.LastAttemptedAt = now;
-            progress.Score = score;
-            progress.Attempts = (progress.Attempts ?? 0) + 1;
-            progress.UpdatedAt = now;
+                db.UserTopicProgress.Add(new UserTopicProgress
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    TopicId = quiz.TopicId,
+                    Status = status,
+                    LastAttemptedAt = now,
+                    Score = score,
+                    Attempts = 1,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                });
+            }
+            else
+            {
+                progress.Status = status;
+                progress.LastAttemptedAt = now;
+                progress.Score = score;
+                progress.Attempts = (progress.Attempts ?? 0) + 1;
+                progress.UpdatedAt = now;
+            }
         }
 
         // XP is only awarded for passing a VERIFIED quiz (mirrors EduBridge's rules: +50 XP).
         var xpAwarded = false;
-        if ((quiz.Verified ?? false) && score >= 70)
+        if (isVerified && score >= 70)
         {
             var profile = await db.UserProfiles.FirstOrDefaultAsync(p => p.Id == userId);
             if (profile is not null)
