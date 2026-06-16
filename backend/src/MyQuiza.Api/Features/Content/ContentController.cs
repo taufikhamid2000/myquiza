@@ -55,11 +55,18 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
 
     [HttpGet("api/v1/topics/{id:guid}/quizzes")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<QuizSummaryDto>>> Quizzes(Guid id)
+    public async Task<ActionResult<IEnumerable<QuizSummaryDto>>> Quizzes(
+        Guid id, [FromQuery] bool includeUnverified = false)
     {
-        var items = await db.Quizzes
-            .Where(q => q.TopicId == id && q.Verified == true)
-            .Select(q => new QuizSummaryDto(q.Id, q.TopicId, q.Name, true, q.Questions.Count))
+        var query = db.Quizzes.Where(q => q.TopicId == id);
+        if (!includeUnverified) query = query.Where(q => q.Verified == true);
+
+        // Verified quizzes first, then alphabetical — so unverified ones sort last
+        // for the client to badge. The `Verified` field reflects the real value now
+        // (it was previously hard-coded true since only verified were returned).
+        var items = await query
+            .OrderByDescending(q => q.Verified == true).ThenBy(q => q.Name)
+            .Select(q => new QuizSummaryDto(q.Id, q.TopicId, q.Name, q.Verified == true, q.Questions.Count))
             .ToListAsync();
         return items;
     }
