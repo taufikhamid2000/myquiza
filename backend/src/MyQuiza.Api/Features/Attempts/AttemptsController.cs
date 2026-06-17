@@ -31,12 +31,16 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
 
         var total = quiz.Questions.Count;
         var correct = 0;
-        foreach (var question in quiz.Questions)
+        var breakdown = new List<QuestionResultDto>(total);
+        foreach (var question in quiz.Questions.OrderBy(q => q.OrderIndex))
         {
             var correctSet = question.Answers.Where(a => a.IsCorrect).Select(a => a.Id).ToHashSet();
-            if (correctSet.Count == 0) continue; // skip malformed question
             var chosen = submitted.TryGetValue(question.Id, out var c) ? c : [];
-            if (chosen.SetEquals(correctSet)) correct++;
+            // A question with no correct answers defined is malformed and can never be
+            // scored correct (keeps `correct` identical to the previous skip behaviour).
+            var isCorrect = correctSet.Count > 0 && chosen.SetEquals(correctSet);
+            if (isCorrect) correct++;
+            breakdown.Add(new QuestionResultDto(question.Id, isCorrect));
         }
 
         var score = total == 0 ? 0 : (int)Math.Round(correct * 100.0 / total);
@@ -120,7 +124,7 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
         await db.SaveChangesAsync();
         await tx.CommitAsync();
 
-        return new AttemptResultDto(attempt.Id, score, correct, total, 100, xpAwarded);
+        return new AttemptResultDto(attempt.Id, score, correct, total, 100, xpAwarded, breakdown);
     }
 
     [HttpGet("api/v1/me/attempts")]
