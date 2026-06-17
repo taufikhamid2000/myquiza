@@ -9,7 +9,7 @@ public record QuizSummaryDto(Guid Id, Guid TopicId, string Name, bool Verified, 
 // ---- Quiz detail (TAKER-facing: is_correct is intentionally NOT exposed) ----
 public record AnswerOptionDto(Guid Id, string Text, int OrderIndex);
 public record QuestionDto(Guid Id, string Text, string Type, int OrderIndex, IReadOnlyList<AnswerOptionDto> Options);
-public record QuizDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, IReadOnlyList<QuestionDto> Questions);
+public record QuizDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, int? TimeLimit, IReadOnlyList<QuestionDto> Questions);
 
 // ---- Quiz authoring ----
 public record CreateAnswerDto(string Text, bool IsCorrect, int OrderIndex);

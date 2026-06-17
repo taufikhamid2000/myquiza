@@ -56,6 +56,9 @@ public class Quiz
     public Guid Id { get; set; }
     public Guid TopicId { get; set; }
     public string Name { get; set; } = null!;
+    // Per-quiz time limit in seconds (DB column is NOT NULL default 900). Nullable here
+    // for forward-safety in case the column is later relaxed to allow nulls.
+    public int? TimeLimit { get; set; }
     // NOTE: created_by is `text` in the DB (stores the auth user id as a string).
     public string CreatedBy { get; set; } = null!;
     public bool? Verified { get; set; }

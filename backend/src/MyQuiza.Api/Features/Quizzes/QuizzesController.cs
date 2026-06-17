@@ -31,7 +31,7 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
                     .ToList()))
             .ToList();
 
-        return new QuizDetailDto(quiz.Id, quiz.TopicId, quiz.Name, quiz.Verified ?? false, questions);
+        return new QuizDetailDto(quiz.Id, quiz.TopicId, quiz.Name, quiz.Verified ?? false, quiz.TimeLimit, questions);
     }
 
     [HttpPost("api/v1/quizzes")]
