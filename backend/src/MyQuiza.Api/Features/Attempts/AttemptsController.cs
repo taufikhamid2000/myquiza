@@ -34,13 +34,15 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
         var breakdown = new List<QuestionResultDto>(total);
         foreach (var question in quiz.Questions.OrderBy(q => q.OrderIndex))
         {
-            var correctSet = question.Answers.Where(a => a.IsCorrect).Select(a => a.Id).ToHashSet();
+            var correctIds = question.Answers.Where(a => a.IsCorrect)
+                .OrderBy(a => a.OrderIndex).Select(a => a.Id).ToList();
+            var correctSet = correctIds.ToHashSet();
             var chosen = submitted.TryGetValue(question.Id, out var c) ? c : [];
             // A question with no correct answers defined is malformed and can never be
             // scored correct (keeps `correct` identical to the previous skip behaviour).
-            var isCorrect = correctSet.Count > 0 && chosen.SetEquals(correctSet);
+            var isCorrect = correctIds.Count > 0 && chosen.SetEquals(correctSet);
             if (isCorrect) correct++;
-            breakdown.Add(new QuestionResultDto(question.Id, isCorrect));
+            breakdown.Add(new QuestionResultDto(question.Id, isCorrect, correctIds));
         }
 
         var score = total == 0 ? 0 : (int)Math.Round(correct * 100.0 / total);

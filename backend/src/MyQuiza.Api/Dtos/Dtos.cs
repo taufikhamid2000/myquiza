@@ -20,9 +20,10 @@ public record VerifyQuizDto(bool Verified, string? Feedback);
 // ---- Attempts ----
 public record SubmitAnswerDto(Guid QuestionId, IReadOnlyList<Guid> SelectedAnswerIds);
 public record SubmitAttemptDto(IReadOnlyList<SubmitAnswerDto> Answers, int? TimeTaken);
-// Per-question correctness, returned ONLY in the attempt response (post-submission) —
-// never on quiz-detail, so the answer key stays hidden until the user submits.
-public record QuestionResultDto(Guid QuestionId, bool Correct);
+// Per-question correctness + the correct answer ids, returned ONLY in the attempt
+// response (post-submission) — never on quiz-detail, so the answer key stays hidden
+// until the user submits. CorrectAnswerIds lets the client highlight the right options.
+public record QuestionResultDto(Guid QuestionId, bool Correct, IReadOnlyList<Guid> CorrectAnswerIds);
 public record AttemptResultDto(Guid AttemptId, int Score, int CorrectAnswers, int TotalQuestions, int MaxScore, bool XpAwarded, IReadOnlyList<QuestionResultDto> Questions);
 public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, int Score, int CorrectAnswers, int TotalQuestions, DateTime CreatedAt);
 
