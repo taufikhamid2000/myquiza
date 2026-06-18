@@ -66,7 +66,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         // (it was previously hard-coded true since only verified were returned).
         var items = await query
             .OrderByDescending(q => q.Verified == true).ThenBy(q => q.Name)
-            .Select(q => new QuizSummaryDto(q.Id, q.TopicId, q.Name, q.Verified == true, q.Questions.Count))
+            .Select(q => new QuizSummaryDto(q.Id, q.TopicId, q.Name, q.Verified == true, q.Questions.Count, q.Difficulty, q.IsPublic))
             .ToListAsync();
         return items;
     }

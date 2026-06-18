@@ -4,17 +4,17 @@ namespace MyQuiza.Api.Dtos;
 public record SubjectDto(Guid Id, string Name, string Slug, string? Description, string? Icon, string? Category, int? OrderIndex, bool IsDisabled = false);
 public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int OrderIndex);
 public record TopicDto(Guid Id, Guid? ChapterId, string Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int OrderIndex);
-public record QuizSummaryDto(Guid Id, Guid TopicId, string Name, bool Verified, int QuestionCount);
+public record QuizSummaryDto(Guid Id, Guid TopicId, string Name, bool Verified, int QuestionCount, string? Difficulty, bool IsPublic);
 
 // ---- Quiz detail (TAKER-facing: is_correct is intentionally NOT exposed) ----
 public record AnswerOptionDto(Guid Id, string Text, int OrderIndex);
 public record QuestionDto(Guid Id, string Text, string Type, int OrderIndex, IReadOnlyList<AnswerOptionDto> Options);
-public record QuizDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, int? TimeLimit, IReadOnlyList<QuestionDto> Questions);
+public record QuizDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, int? TimeLimit, string? Difficulty, bool IsPublic, IReadOnlyList<QuestionDto> Questions);
 
 // ---- Quiz authoring ----
 public record CreateAnswerDto(string Text, bool IsCorrect, int OrderIndex);
 public record CreateQuestionDto(string Text, string Type, int OrderIndex, IReadOnlyList<CreateAnswerDto> Answers);
-public record CreateQuizDto(Guid TopicId, string Name, IReadOnlyList<CreateQuestionDto> Questions);
+public record CreateQuizDto(Guid TopicId, string Name, IReadOnlyList<CreateQuestionDto> Questions, int? TimeLimit = null, string? Difficulty = null, bool IsPublic = true);
 public record VerifyQuizDto(bool Verified, string? Feedback);
 
 // ---- Attempts ----

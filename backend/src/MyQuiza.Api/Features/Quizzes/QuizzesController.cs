@@ -31,7 +31,7 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
                     .ToList()))
             .ToList();
 
-        return new QuizDetailDto(quiz.Id, quiz.TopicId, quiz.Name, quiz.Verified ?? false, quiz.TimeLimit, questions);
+        return new QuizDetailDto(quiz.Id, quiz.TopicId, quiz.Name, quiz.Verified ?? false, quiz.TimeLimit, quiz.Difficulty, quiz.IsPublic, questions);
     }
 
     [HttpPost("api/v1/quizzes")]
@@ -46,6 +46,9 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
             Id = Guid.NewGuid(),
             TopicId = body.TopicId,
             Name = body.Name,
+            TimeLimit = body.TimeLimit,
+            Difficulty = body.Difficulty,
+            IsPublic = body.IsPublic,
             CreatedBy = userId.ToString(),
             Verified = false,
             CreatedAt = now,
@@ -73,7 +76,7 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser) : Contr
         await db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = quiz.Id },
-            new QuizSummaryDto(quiz.Id, quiz.TopicId, quiz.Name, false, quiz.Questions.Count));
+            new QuizSummaryDto(quiz.Id, quiz.TopicId, quiz.Name, false, quiz.Questions.Count, quiz.Difficulty, quiz.IsPublic));
     }
 
     /// <summary>Verify/unverify a quiz — moderators &amp; admins only.</summary>
