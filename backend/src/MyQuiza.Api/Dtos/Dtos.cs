@@ -17,6 +17,16 @@ public record CreateQuestionDto(string Text, string Type, int OrderIndex, IReadO
 public record CreateQuizDto(Guid TopicId, string Name, IReadOnlyList<CreateQuestionDto> Questions, int? TimeLimit = null, string? Difficulty = null, bool IsPublic = true);
 public record VerifyQuizDto(bool Verified, string? Feedback);
 
+// ---- Quiz edit (author/moderator-facing: is_correct IS exposed) ----
+public record UpdateQuizDto(string? Name, string? Difficulty, int? TimeLimit, bool? IsPublic);
+public record AddQuestionDto(string Text, string Type, int OrderIndex, IReadOnlyList<CreateAnswerDto> Answers);
+public record UpdateQuestionDto(string? Text, string? Type, int? OrderIndex);
+public record AddAnswerDto(string Text, bool IsCorrect, int OrderIndex);
+public record UpdateAnswerDto(string? Text, bool? IsCorrect, int? OrderIndex);
+public record AnswerAuthorDto(Guid Id, string Text, bool IsCorrect, int OrderIndex);
+public record QuestionAuthorDto(Guid Id, string Text, string Type, int OrderIndex, IReadOnlyList<AnswerAuthorDto> Answers);
+public record QuizAuthorDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, int? TimeLimit, string? Difficulty, bool IsPublic, IReadOnlyList<QuestionAuthorDto> Questions);
+
 // ---- Attempts ----
 public record SubmitAnswerDto(Guid QuestionId, IReadOnlyList<Guid> SelectedAnswerIds);
 public record SubmitAttemptDto(IReadOnlyList<SubmitAnswerDto> Answers, int? TimeTaken);
