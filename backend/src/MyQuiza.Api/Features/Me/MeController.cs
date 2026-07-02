@@ -26,6 +26,23 @@ public class MeController(AppDbContext db, CurrentUser currentUser) : Controller
             profile.Xp, profile.Level, profile.Streak, profile.SchoolRole, role);
     }
 
+    /// <summary>Self-service profile update. schoolRole is intentionally not editable here — see UpdateMeDto.</summary>
+    [HttpPatch("api/v1/me")]
+    [Authorize]
+    public async Task<IActionResult> Update(UpdateMeDto body)
+    {
+        var userId = currentUser.RequireUserId();
+        var profile = await db.UserProfiles.FirstOrDefaultAsync(p => p.Id == userId);
+        if (profile is null) return NotFound();
+
+        if (body.DisplayName is not null) profile.DisplayName = body.DisplayName;
+        if (body.AvatarUrl is not null) profile.AvatarUrl = body.AvatarUrl;
+        profile.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpGet("api/v1/me/progress")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<TopicProgressDto>>> Progress()

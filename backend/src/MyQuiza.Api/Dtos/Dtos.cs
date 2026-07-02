@@ -39,5 +39,8 @@ public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, int Sco
 
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);
+// schoolRole is deliberately excluded — it's a privilege lever (teacher/admin grant
+// Moderator/Admin via RoleAuthorizationHandler), so it must never be self-service.
+public record UpdateMeDto(string? DisplayName, string? AvatarUrl);
 public record TopicProgressDto(Guid? TopicId, string? Status, int? Score, int? Attempts, DateTime? LastAttemptedAt);
 public record LeaderboardEntryDto(Guid UserId, string? DisplayName, string? AvatarUrl, int Xp, int Level, int WeeklyXp);
