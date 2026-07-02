@@ -46,11 +46,18 @@ public record AttemptResultDto(Guid AttemptId, int Score, int CorrectAnswers, in
 public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, int Score, int CorrectAnswers, int TotalQuestions, DateTime CreatedAt);
 
 // ---- Achievements ----
-// No achievement catalog exists in the DB — every row in `achievements` already
-// belongs to a user (earned or in-progress), with title/description/icon copied
-// in at award time. There is nothing to "list" independent of a user.
 public record AchievementDto(Guid Id, string AchievementType, string Title, string Description, string Icon, DateTime EarnedAt, int? Progress, int? MaxProgress);
-public record AwardAchievementDto(string AchievementType, string Title, string Description, string Icon, int? Progress = null, int? MaxProgress = null);
+
+// Catalog: fixed achievement definitions (title/description/icon shown consistently
+// across all users). Awarding either references a catalog entry (copies its fields
+// as a snapshot) or stays freeform for one-off awards with no catalog definition.
+public record AchievementCatalogDto(Guid Id, string AchievementType, string Title, string Description, string Icon, int? MaxProgress);
+public record CreateAchievementCatalogDto(string AchievementType, string Title, string Description, string Icon, int? MaxProgress = null);
+public record UpdateAchievementCatalogDto(string? AchievementType, string? Title, string? Description, string? Icon, int? MaxProgress);
+
+// Award: pass AchievementId to pull from the catalog (Title/Description/Icon/AchievementType
+// ignored if set), or omit it and supply the freeform fields directly for a one-off award.
+public record AwardAchievementDto(Guid? AchievementId, string? AchievementType, string? Title, string? Description, string? Icon, int? Progress = null, int? MaxProgress = null);
 
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);

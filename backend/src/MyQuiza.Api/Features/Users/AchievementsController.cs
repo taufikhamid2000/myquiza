@@ -22,22 +22,53 @@ public class AchievementsController(AppDbContext db) : ControllerBase
         return items;
     }
 
+    /// <summary>
+    /// Awards an achievement. Pass achievementId to pull title/description/icon from the
+    /// catalog (snapshotted at award time — later catalog edits won't retroactively change
+    /// past awards). Omit achievementId and supply the freeform fields for a one-off award.
+    /// </summary>
     [HttpPost("api/v1/users/{userId:guid}/achievements")]
     [Authorize(Policy = "Moderator")]
     public async Task<ActionResult<AchievementDto>> Award(Guid userId, AwardAchievementDto body)
     {
+        string achievementType, title, description, icon;
+        int? maxProgress = body.MaxProgress;
+
+        if (body.AchievementId is not null)
+        {
+            var catalogEntry = await db.AchievementCatalog.FirstOrDefaultAsync(a => a.Id == body.AchievementId);
+            if (catalogEntry is null) return BadRequest("achievementId does not match any catalog entry.");
+
+            achievementType = catalogEntry.AchievementType;
+            title = catalogEntry.Title;
+            description = catalogEntry.Description;
+            icon = catalogEntry.Icon;
+            maxProgress ??= catalogEntry.MaxProgress;
+        }
+        else
+        {
+            if (body.AchievementType is null || body.Title is null || body.Description is null || body.Icon is null)
+                return BadRequest("achievementType, title, description, and icon are required when achievementId is omitted.");
+
+            achievementType = body.AchievementType;
+            title = body.Title;
+            description = body.Description;
+            icon = body.Icon;
+        }
+
         var now = DateTime.UtcNow;
         var achievement = new Achievement
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            AchievementType = body.AchievementType,
-            Title = body.Title,
-            Description = body.Description,
-            Icon = body.Icon,
+            AchievementId = body.AchievementId,
+            AchievementType = achievementType,
+            Title = title,
+            Description = description,
+            Icon = icon,
             EarnedAt = now,
             Progress = body.Progress,
-            MaxProgress = body.MaxProgress,
+            MaxProgress = maxProgress,
             CreatedAt = now,
             UpdatedAt = now,
         };

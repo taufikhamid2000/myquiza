@@ -50,10 +50,27 @@ public class QuizAttempt
     public DateTime UpdatedAt { get; set; }
 }
 
+public class AchievementCatalog
+{
+    public Guid Id { get; set; }
+    public string AchievementType { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    public string Description { get; set; } = null!;
+    public string Icon { get; set; } = null!;
+    public int? MaxProgress { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
 public class Achievement
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    // Nullable: awards can reference a catalog entry, or stay freeform (one-off awards
+    // with no catalog definition). When AchievementId is set, Title/Description/Icon
+    // are a snapshot copied from the catalog at award time so past awards don't change
+    // retroactively if the catalog entry is later edited.
+    public Guid? AchievementId { get; set; }
     public string AchievementType { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;

@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<UserTopicProgress> UserTopicProgress => Set<UserTopicProgress>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
+    public DbSet<AchievementCatalog> AchievementCatalog => Set<AchievementCatalog>();
     public DbSet<QuizAuditComment> QuizAuditComments => Set<QuizAuditComment>();
     public DbSet<QuestionAuditComment> QuestionAuditComments => Set<QuestionAuditComment>();
     public DbSet<AnswerAuditComment> AnswerAuditComments => Set<AnswerAuditComment>();
@@ -96,6 +97,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<UserTopicProgress>(e =>
         {
             e.ToTable("user_topic_progress");
+            e.HasKey(x => x.Id);
+        });
+
+        b.Entity<AchievementCatalog>(e =>
+        {
+            e.ToTable("achievement_catalog");
             e.HasKey(x => x.Id);
         });
 
