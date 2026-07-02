@@ -54,4 +54,17 @@ public class MeController(AppDbContext db, CurrentUser currentUser) : Controller
             .ToListAsync();
         return items;
     }
+
+    [HttpGet("api/v1/me/achievements")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<AchievementDto>>> Achievements()
+    {
+        var userId = currentUser.RequireUserId();
+        var items = await db.Achievements
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.EarnedAt)
+            .Select(a => new AchievementDto(a.Id, a.AchievementType, a.Title, a.Description, a.Icon, a.EarnedAt, a.Progress, a.MaxProgress))
+            .ToListAsync();
+        return items;
+    }
 }

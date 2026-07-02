@@ -50,6 +50,21 @@ public class QuizAttempt
     public DateTime UpdatedAt { get; set; }
 }
 
+public class Achievement
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string AchievementType { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    public string Description { get; set; } = null!;
+    public string Icon { get; set; } = null!;
+    public DateTime EarnedAt { get; set; }
+    public int? Progress { get; set; }
+    public int? MaxProgress { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
 public class UserTopicProgress
 {
     public Guid Id { get; set; }

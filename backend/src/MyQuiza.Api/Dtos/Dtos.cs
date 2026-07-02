@@ -45,6 +45,13 @@ public record QuestionResultDto(Guid QuestionId, bool Correct, IReadOnlyList<Gui
 public record AttemptResultDto(Guid AttemptId, int Score, int CorrectAnswers, int TotalQuestions, int MaxScore, bool XpAwarded, IReadOnlyList<QuestionResultDto> Questions);
 public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, int Score, int CorrectAnswers, int TotalQuestions, DateTime CreatedAt);
 
+// ---- Achievements ----
+// No achievement catalog exists in the DB — every row in `achievements` already
+// belongs to a user (earned or in-progress), with title/description/icon copied
+// in at award time. There is nothing to "list" independent of a user.
+public record AchievementDto(Guid Id, string AchievementType, string Title, string Description, string Icon, DateTime EarnedAt, int? Progress, int? MaxProgress);
+public record AwardAchievementDto(string AchievementType, string Title, string Description, string Icon, int? Progress = null, int? MaxProgress = null);
+
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);
 // schoolRole is deliberately excluded — it's a privilege lever (teacher/admin grant
