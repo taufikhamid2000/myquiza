@@ -27,6 +27,14 @@ public record AnswerAuthorDto(Guid Id, string Text, bool IsCorrect, int OrderInd
 public record QuestionAuthorDto(Guid Id, string Text, string Type, int OrderIndex, IReadOnlyList<AnswerAuthorDto> Answers);
 public record QuizAuthorDetailDto(Guid Id, Guid TopicId, string Name, bool Verified, int? TimeLimit, string? Difficulty, bool IsPublic, IReadOnlyList<QuestionAuthorDto> Questions);
 
+// ---- Moderation audit trail ----
+// commentType: 'suggestion' | 'issue' | 'approved' | 'rejected' (DB-constrained)
+public record CreateAuditCommentDto(string CommentText, string CommentType);
+public record AuditCommentDto(Guid Id, Guid AdminUserId, string CommentText, string CommentType, bool IsResolved, DateTime CreatedAt, DateTime UpdatedAt);
+public record ResolveAuditCommentDto(bool IsResolved);
+// action: 'verified' | 'unverified' | 'rejected' — written automatically by the verify endpoint
+public record VerificationLogEntryDto(Guid Id, Guid AdminUserId, string Action, string? Reason, DateTime CreatedAt);
+
 // ---- Attempts ----
 public record SubmitAnswerDto(Guid QuestionId, IReadOnlyList<Guid> SelectedAnswerIds);
 public record SubmitAttemptDto(IReadOnlyList<SubmitAnswerDto> Answers, int? TimeTaken);

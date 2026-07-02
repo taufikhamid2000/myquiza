@@ -21,6 +21,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<UserTopicProgress> UserTopicProgress => Set<UserTopicProgress>();
+    public DbSet<QuizAuditComment> QuizAuditComments => Set<QuizAuditComment>();
+    public DbSet<QuestionAuditComment> QuestionAuditComments => Set<QuestionAuditComment>();
+    public DbSet<AnswerAuditComment> AnswerAuditComments => Set<AnswerAuditComment>();
+    public DbSet<QuizVerificationLog> QuizVerificationLogs => Set<QuizVerificationLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -92,6 +96,38 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("user_topic_progress");
             e.HasKey(x => x.Id);
+        });
+
+        b.Entity<QuizAuditComment>(e =>
+        {
+            e.ToTable("quiz_audit_comments");
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.Quiz).WithMany()
+                .HasForeignKey(x => x.QuizId);
+        });
+
+        b.Entity<QuestionAuditComment>(e =>
+        {
+            e.ToTable("question_audit_comments");
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.Question).WithMany()
+                .HasForeignKey(x => x.QuestionId);
+        });
+
+        b.Entity<AnswerAuditComment>(e =>
+        {
+            e.ToTable("answer_audit_comments");
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.Answer).WithMany()
+                .HasForeignKey(x => x.AnswerId);
+        });
+
+        b.Entity<QuizVerificationLog>(e =>
+        {
+            e.ToTable("quiz_verification_log");
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.Quiz).WithMany()
+                .HasForeignKey(x => x.QuizId);
         });
     }
 }

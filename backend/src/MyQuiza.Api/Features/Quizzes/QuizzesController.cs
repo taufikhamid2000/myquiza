@@ -137,6 +137,17 @@ public class QuizzesController(AppDbContext db, CurrentUser currentUser, IAuthor
         quiz.VerifiedBy = userId;
         quiz.VerifiedAt = DateTime.UtcNow;
         quiz.VerificationFeedback = body.Feedback;
+
+        db.QuizVerificationLogs.Add(new QuizVerificationLog
+        {
+            Id = Guid.NewGuid(),
+            QuizId = id,
+            AdminUserId = userId,
+            Action = body.Verified ? "verified" : "unverified",
+            Reason = body.Feedback,
+            CreatedAt = DateTime.UtcNow,
+        });
+
         await db.SaveChangesAsync();
 
         return NoContent();
