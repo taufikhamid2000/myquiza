@@ -4,6 +4,14 @@ namespace MyQuiza.Api.Dtos;
 public record SubjectDto(Guid Id, string Name, string Slug, string? Description, string? Icon, string? Category, int? OrderIndex, bool IsDisabled = false);
 public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int OrderIndex);
 public record TopicDto(Guid Id, Guid? ChapterId, string Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int OrderIndex);
+
+// ---- Content tree authoring (moderator-gated, same policy as includeDisabled) ----
+public record CreateSubjectDto(string Name, string Slug, string? Description = null, string? Icon = null, int? OrderIndex = null, string? Category = null, int? CategoryPriority = null);
+public record UpdateSubjectDto(string? Name, string? Slug, string? Description, string? Icon, int? OrderIndex, string? Category, int? CategoryPriority, bool? IsDisabled);
+public record CreateChapterDto(Guid SubjectId, string Name, int Form, int OrderIndex);
+public record UpdateChapterDto(string? Name, int? Form, int? OrderIndex);
+public record CreateTopicDto(Guid ChapterId, string Name, string? Description = null, int? DifficultyLevel = null, int? TimeEstimateMinutes = null, int OrderIndex = 0);
+public record UpdateTopicDto(string? Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int? OrderIndex);
 public record QuizSummaryDto(Guid Id, Guid TopicId, string Name, bool Verified, int QuestionCount, string? Difficulty, bool IsPublic);
 
 // ---- Quiz detail (TAKER-facing: is_correct is intentionally NOT exposed) ----
