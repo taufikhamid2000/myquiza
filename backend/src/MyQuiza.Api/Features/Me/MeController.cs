@@ -55,6 +55,25 @@ public class MeController(AppDbContext db, CurrentUser currentUser) : Controller
         return items;
     }
 
+    /// <summary>
+    /// Aggregate quiz stats from mv_user_dashboard_stats. streak/xp/level are already on
+    /// GET /me — not duplicated here. Returns zeroed stats (not 404) if the user has no
+    /// row yet in the view (e.g. never attempted a quiz).
+    /// </summary>
+    [HttpGet("api/v1/me/stats")]
+    [Authorize]
+    public async Task<ActionResult<DashboardStatsDto>> Stats()
+    {
+        var userId = currentUser.RequireUserId();
+        var row = await db.UserDashboardStats.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == userId);
+
+        if (row is null) return new DashboardStatsDto(0, 0, 0, 0, 0, null);
+
+        return new DashboardStatsDto((int)row.CompletedQuizzes, row.AverageScore, (int)row.ActiveDays,
+            (int)row.WeeklyQuizzes, row.WeeklyAverageScore, row.LastQuizDate);
+    }
+
     [HttpGet("api/v1/me/achievements")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<AchievementDto>>> Achievements()

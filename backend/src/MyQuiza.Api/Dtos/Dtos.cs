@@ -68,6 +68,9 @@ public record SchoolDetailDto(Guid Id, string Name, string Type, string? Code, s
 public record CreateSchoolDto(string Name, string Type, string District, string State, string? Code = null, string? Address = null, string? Website = null, string? Phone = null, string? PrincipalName = null, int? TotalStudents = null);
 public record UpdateSchoolDto(string? Name, string? Type, string? Code, string? District, string? State, string? Address, string? Website, string? Phone, string? PrincipalName, int? TotalStudents);
 
+// ---- Dashboard stats (backed by the mv_user_dashboard_stats materialized view) ----
+public record DashboardStatsDto(int CompletedQuizzes, decimal AverageScore, int ActiveDays, int WeeklyQuizzes, decimal WeeklyAverageScore, DateTime? LastQuizDate);
+
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);
 // schoolRole is deliberately excluded — it's a privilege lever (teacher/admin grant
