@@ -43,7 +43,7 @@ public record SubmitAttemptDto(IReadOnlyList<SubmitAnswerDto> Answers, int? Time
 // until the user submits. CorrectAnswerIds lets the client highlight the right options.
 public record QuestionResultDto(Guid QuestionId, bool Correct, IReadOnlyList<Guid> CorrectAnswerIds);
 public record AttemptResultDto(Guid AttemptId, int Score, int CorrectAnswers, int TotalQuestions, int MaxScore, bool XpAwarded, IReadOnlyList<QuestionResultDto> Questions);
-public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, int Score, int CorrectAnswers, int TotalQuestions, DateTime CreatedAt);
+public record AttemptSummaryDto(Guid Id, Guid QuizId, string? QuizTitle, string? Topic, string? Subject, int Score, int CorrectAnswers, int TotalQuestions, DateTime CreatedAt);
 
 // ---- Achievements ----
 public record AchievementDto(Guid Id, string AchievementType, string Title, string Description, string Icon, DateTime EarnedAt, int? Progress, int? MaxProgress);

@@ -23,7 +23,7 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
 
         var quiz = await db.Quizzes
             .Include(q => q.Questions).ThenInclude(q => q.Answers)
-            .Include(q => q.Topic)
+            .Include(q => q.Topic).ThenInclude(t => t!.Chapter).ThenInclude(c => c!.Subject)
             .FirstOrDefaultAsync(q => q.Id == quizId);
         if (quiz is null) return NotFound();
 
@@ -60,6 +60,7 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
             Completed = true,
             QuizTitle = quiz.Name,
             Topic = quiz.Topic?.Name,
+            Subject = quiz.Topic?.Chapter?.Subject?.Name,
             TimeTaken = body.TimeTaken,
             MaxScore = 100,
             CorrectAnswers = correct,
@@ -137,7 +138,7 @@ public class AttemptsController(AppDbContext db, CurrentUser currentUser) : Cont
         var items = await db.QuizAttempts
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new AttemptSummaryDto(a.Id, a.QuizId, a.QuizTitle, a.Score, a.CorrectAnswers, a.TotalQuestions, a.CreatedAt))
+            .Select(a => new AttemptSummaryDto(a.Id, a.QuizId, a.QuizTitle, a.Topic, a.Subject, a.Score, a.CorrectAnswers, a.TotalQuestions, a.CreatedAt))
             .ToListAsync();
         return items;
     }
