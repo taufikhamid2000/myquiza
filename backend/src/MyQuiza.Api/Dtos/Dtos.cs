@@ -64,6 +64,9 @@ public record SchoolStatsDto(decimal AverageScore, decimal ParticipationRate, in
 // Ranked by average_score desc — flag to EduBridge if a different ranking metric is expected.
 public record SchoolLeaderboardEntryDto(Guid Id, string Name, string Type, string District, string State, decimal AverageScore, decimal ParticipationRate, int ActiveStudents);
 public record SchoolDetailDto(Guid Id, string Name, string Type, string? Code, string District, string State, string? Address, string? Website, string? Phone, string? PrincipalName, int? TotalStudents, SchoolStatsDto? Stats);
+// type is DB-constrained: SMK | SMKA | MRSM | Sekolah Sains | Sekolah Sukan | Sekolah Seni | SBP | SMJK | KV
+public record CreateSchoolDto(string Name, string Type, string District, string State, string? Code = null, string? Address = null, string? Website = null, string? Phone = null, string? PrincipalName = null, int? TotalStudents = null);
+public record UpdateSchoolDto(string? Name, string? Type, string? Code, string? District, string? State, string? Address, string? Website, string? Phone, string? PrincipalName, int? TotalStudents);
 
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);
