@@ -23,6 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserTopicProgress> UserTopicProgress => Set<UserTopicProgress>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<AchievementCatalog> AchievementCatalog => Set<AchievementCatalog>();
+    public DbSet<School> Schools => Set<School>();
+    public DbSet<SchoolStats> SchoolStats => Set<SchoolStats>();
     public DbSet<QuizAuditComment> QuizAuditComments => Set<QuizAuditComment>();
     public DbSet<QuestionAuditComment> QuestionAuditComments => Set<QuestionAuditComment>();
     public DbSet<AnswerAuditComment> AnswerAuditComments => Set<AnswerAuditComment>();
@@ -98,6 +100,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("user_topic_progress");
             e.HasKey(x => x.Id);
+        });
+
+        b.Entity<School>(e =>
+        {
+            e.ToTable("schools");
+            e.HasKey(x => x.Id);
+        });
+
+        b.Entity<SchoolStats>(e =>
+        {
+            e.ToTable("school_stats");
+            e.HasKey(x => x.SchoolId);
+            e.HasOne(x => x.School).WithOne(s => s.Stats)
+                .HasForeignKey<SchoolStats>(x => x.SchoolId);
         });
 
         b.Entity<AchievementCatalog>(e =>

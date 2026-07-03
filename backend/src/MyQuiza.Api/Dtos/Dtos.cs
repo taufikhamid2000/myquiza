@@ -59,6 +59,12 @@ public record UpdateAchievementCatalogDto(string? AchievementType, string? Title
 // ignored if set), or omit it and supply the freeform fields directly for a one-off award.
 public record AwardAchievementDto(Guid? AchievementId, string? AchievementType, string? Title, string? Description, string? Icon, int? Progress = null, int? MaxProgress = null);
 
+// ---- Schools ----
+public record SchoolStatsDto(decimal AverageScore, decimal ParticipationRate, int TotalQuizzesTaken, int TotalQuestionsAnswered, int CorrectAnswers, int ActiveStudents, DateTime LastCalculatedAt);
+// Ranked by average_score desc — flag to EduBridge if a different ranking metric is expected.
+public record SchoolLeaderboardEntryDto(Guid Id, string Name, string Type, string District, string State, decimal AverageScore, decimal ParticipationRate, int ActiveStudents);
+public record SchoolDetailDto(Guid Id, string Name, string Type, string? Code, string District, string State, string? Address, string? Website, string? Phone, string? PrincipalName, int? TotalStudents, SchoolStatsDto? Stats);
+
 // ---- Me / progress / leaderboard ----
 public record MeDto(Guid Id, string? DisplayName, string? AvatarUrl, int Xp, int Level, int Streak, string? SchoolRole, string PlatformRole);
 // schoolRole is deliberately excluded — it's a privilege lever (teacher/admin grant
