@@ -121,12 +121,21 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         return NoContent();
     }
 
+    /// <summary>
+    /// Refuses to delete while chapters exist rather than relying on the DB's FK behavior —
+    /// subjects.chapters has no ON DELETE action, so an unguarded delete would 500 with a
+    /// raw constraint violation instead of a clean, actionable response.
+    /// </summary>
     [HttpDelete("api/v1/subjects/{id:guid}")]
     [Authorize(Policy = "Moderator")]
     public async Task<IActionResult> DeleteSubject(Guid id)
     {
         var subject = await db.Subjects.FirstOrDefaultAsync(s => s.Id == id);
         if (subject is null) return NotFound();
+
+        var chapterCount = await db.Chapters.CountAsync(c => c.SubjectId == id);
+        if (chapterCount > 0)
+            return Conflict($"Subject has {chapterCount} chapter(s). Delete or move them first.");
 
         db.Subjects.Remove(subject);
         await db.SaveChangesAsync();
@@ -174,12 +183,22 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         return NoContent();
     }
 
+    /// <summary>
+    /// Refuses to delete while topics exist. Unlike subjects, chapters.topics DOES cascade
+    /// in the DB (topics -> quizzes -> questions/answers, plus quiz_attempts and
+    /// user_topic_progress) — an unguarded delete here would silently destroy every quiz,
+    /// question, and student's attempt history under this chapter with a single call.
+    /// </summary>
     [HttpDelete("api/v1/chapters/{id:guid}")]
     [Authorize(Policy = "Moderator")]
     public async Task<IActionResult> DeleteChapter(Guid id)
     {
         var chapter = await db.Chapters.FirstOrDefaultAsync(c => c.Id == id);
         if (chapter is null) return NotFound();
+
+        var topicCount = await db.Topics.CountAsync(t => t.ChapterId == id);
+        if (topicCount > 0)
+            return Conflict($"Chapter has {topicCount} topic(s). Deleting it would cascade-delete their quizzes, questions, and student attempt history — delete or move the topics first.");
 
         db.Chapters.Remove(chapter);
         await db.SaveChangesAsync();
@@ -231,12 +250,21 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         return NoContent();
     }
 
+    /// <summary>
+    /// Refuses to delete while quizzes exist under this topic. quizzes.topic_id cascades
+    /// in the DB to questions/answers plus quiz_attempts and user_topic_progress — an
+    /// unguarded delete would silently wipe every quiz and student's history for this topic.
+    /// </summary>
     [HttpDelete("api/v1/topics/{id:guid}")]
     [Authorize(Policy = "Moderator")]
     public async Task<IActionResult> DeleteTopic(Guid id)
     {
         var topic = await db.Topics.FirstOrDefaultAsync(t => t.Id == id);
         if (topic is null) return NotFound();
+
+        var quizCount = await db.Quizzes.CountAsync(q => q.TopicId == id);
+        if (quizCount > 0)
+            return Conflict($"Topic has {quizCount} quiz(zes). Deleting it would cascade-delete them and student attempt history — delete or move the quizzes first.");
 
         db.Topics.Remove(topic);
         await db.SaveChangesAsync();
