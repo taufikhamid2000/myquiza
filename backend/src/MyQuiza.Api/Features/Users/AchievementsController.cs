@@ -10,8 +10,9 @@ namespace MyQuiza.Api.Features.Users;
 [ApiController]
 public class AchievementsController(AppDbContext db) : ControllerBase
 {
+    /// <summary>Public — achievement badges aren't sensitive, and profile pages need to show other users' earned badges.</summary>
     [HttpGet("api/v1/users/{userId:guid}/achievements")]
-    [Authorize(Policy = "Moderator")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<AchievementDto>>> List(Guid userId)
     {
         var items = await db.Achievements
