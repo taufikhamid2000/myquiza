@@ -98,6 +98,23 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         return tree;
     }
 
+    /// <summary>
+    /// Reverse lookup for a single topic's ancestry — there was no single-topic-detail
+    /// endpoint at all before this, only nested lists under a chapter, so there was no
+    /// way to resolve "which chapter/subject is this topic under" from just a topic id.
+    /// </summary>
+    [HttpGet("api/v1/topics/{id:guid}/breadcrumb")]
+    [AllowAnonymous]
+    public async Task<ActionResult<TopicBreadcrumbDto>> TopicBreadcrumb(Guid id)
+    {
+        var topic = await db.Topics.Include(t => t.Chapter).ThenInclude(c => c!.Subject)
+            .AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+        if (topic is null) return NotFound();
+
+        return new TopicBreadcrumbDto(topic.Id, topic.Name, topic.ChapterId, topic.Chapter?.Name,
+            topic.Chapter?.SubjectId, topic.Chapter?.Subject?.Name);
+    }
+
     // ---- Subjects ----
 
     [HttpPost("api/v1/subjects")]
