@@ -37,7 +37,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         var items = await db.Chapters
             .Where(c => c.SubjectId == id)
             .OrderBy(c => c.OrderIndex)
-            .Select(c => new ChapterDto(c.Id, c.SubjectId, c.Name, c.Form, c.OrderIndex))
+            .Select(c => new ChapterDto(c.Id, c.SubjectId, c.Name, c.Form, c.OrderIndex, c.Description))
             .ToListAsync();
         return items;
     }
@@ -200,6 +200,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
             Name = body.Name,
             Form = body.Form,
             OrderIndex = body.OrderIndex,
+            Description = body.Description,
             CreatedAt = now,
             UpdatedAt = now,
         };
@@ -207,7 +208,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         db.Chapters.Add(chapter);
         await db.SaveChangesAsync();
 
-        return new ChapterDto(chapter.Id, chapter.SubjectId, chapter.Name, chapter.Form, chapter.OrderIndex);
+        return new ChapterDto(chapter.Id, chapter.SubjectId, chapter.Name, chapter.Form, chapter.OrderIndex, chapter.Description);
     }
 
     [HttpPatch("api/v1/chapters/{id:guid}")]
@@ -220,6 +221,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         if (body.Name is not null) chapter.Name = body.Name;
         if (body.Form is not null) chapter.Form = body.Form.Value;
         if (body.OrderIndex is not null) chapter.OrderIndex = body.OrderIndex.Value;
+        if (body.Description is not null) chapter.Description = body.Description;
         chapter.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
 

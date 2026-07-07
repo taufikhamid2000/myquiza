@@ -2,7 +2,7 @@ namespace MyQuiza.Api.Dtos;
 
 // ---- Content tree ----
 public record SubjectDto(Guid Id, string Name, string Slug, string? Description, string? Icon, string? Category, int? OrderIndex, bool IsDisabled = false, int? CategoryPriority = null);
-public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int OrderIndex);
+public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int OrderIndex, string? Description = null);
 public record TopicDto(Guid Id, Guid? ChapterId, string Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int OrderIndex);
 public record TopicBreadcrumbDto(Guid Id, string Name, Guid? ChapterId, string? ChapterName, Guid? SubjectId, string? SubjectName);
 
@@ -14,8 +14,8 @@ public record SubjectTreeDto(Guid Id, string Name, string Slug, bool IsDisabled,
 
 public record CreateSubjectDto(string Name, string Slug, string? Description = null, string? Icon = null, int? OrderIndex = null, string? Category = null, int? CategoryPriority = null);
 public record UpdateSubjectDto(string? Name, string? Slug, string? Description, string? Icon, int? OrderIndex, string? Category, int? CategoryPriority, bool? IsDisabled);
-public record CreateChapterDto(Guid SubjectId, string Name, int Form, int OrderIndex);
-public record UpdateChapterDto(string? Name, int? Form, int? OrderIndex);
+public record CreateChapterDto(Guid SubjectId, string Name, int Form, int OrderIndex, string? Description = null);
+public record UpdateChapterDto(string? Name, int? Form, int? OrderIndex, string? Description);
 public record CreateTopicDto(Guid ChapterId, string Name, string? Description = null, int? DifficultyLevel = null, int? TimeEstimateMinutes = null, int OrderIndex = 0);
 public record UpdateTopicDto(string? Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int? OrderIndex);
 public record QuizSummaryDto(Guid Id, Guid TopicId, string Name, bool Verified, int QuestionCount, string? Difficulty, bool IsPublic);
