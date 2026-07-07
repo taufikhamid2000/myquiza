@@ -171,6 +171,28 @@ public class AuditController(AppDbContext db, CurrentUser currentUser, IAuthoriz
         return NoContent();
     }
 
+    /// <summary>
+    /// Cross-quiz moderator dashboard aggregate: unresolved comment counts plus today's
+    /// verify/unverify/reject action counts. Every other audit endpoint is scoped to a
+    /// single quiz/question/answer, so this exists to avoid an admin UI fan-out.
+    /// </summary>
+    [HttpGet("api/v1/admin/audit-summary")]
+    [Authorize(Policy = "Moderator")]
+    public async Task<ActionResult<AuditSummaryDto>> AuditSummary()
+    {
+        var todayUtc = DateTime.UtcNow.Date;
+
+        var unresolvedQuiz = await db.QuizAuditComments.CountAsync(c => !c.IsResolved);
+        var unresolvedQuestion = await db.QuestionAuditComments.CountAsync(c => !c.IsResolved);
+        var unresolvedAnswer = await db.AnswerAuditComments.CountAsync(c => !c.IsResolved);
+
+        var verifiedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "verified" && l.CreatedAt >= todayUtc);
+        var unverifiedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "unverified" && l.CreatedAt >= todayUtc);
+        var rejectedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "rejected" && l.CreatedAt >= todayUtc);
+
+        return new AuditSummaryDto(unresolvedQuiz, unresolvedQuestion, unresolvedAnswer, verifiedToday, unverifiedToday, rejectedToday);
+    }
+
     // ---- Verification log (read-only; written by POST /quizzes/{id}/verify) ----
 
     [HttpGet("api/v1/quizzes/{quizId:guid}/verification-log")]
