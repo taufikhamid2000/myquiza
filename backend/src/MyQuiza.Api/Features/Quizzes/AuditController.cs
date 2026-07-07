@@ -189,8 +189,62 @@ public class AuditController(AppDbContext db, CurrentUser currentUser, IAuthoriz
         var verifiedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "verified" && l.CreatedAt >= todayUtc);
         var unverifiedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "unverified" && l.CreatedAt >= todayUtc);
         var rejectedToday = await db.QuizVerificationLogs.CountAsync(l => l.Action == "rejected" && l.CreatedAt >= todayUtc);
+        var unverifiedQuizCount = await db.Quizzes.CountAsync(q => q.Verified != true);
 
-        return new AuditSummaryDto(unresolvedQuiz, unresolvedQuestion, unresolvedAnswer, verifiedToday, unverifiedToday, rejectedToday);
+        return new AuditSummaryDto(unresolvedQuiz, unresolvedQuestion, unresolvedAnswer, verifiedToday, unverifiedToday, rejectedToday, unverifiedQuizCount);
+    }
+
+    /// <summary>
+    /// Review queue: all unverified quizzes with ancestry (subject/chapter/topic names)
+    /// and a rolled-up unresolved-comment count (quiz + question + answer comments, all
+    /// attributed back to the owning quiz). Built to replace an admin-side N+1 that ran
+    /// one comment-count query per quiz.
+    /// </summary>
+    [HttpGet("api/v1/admin/quizzes/unverified")]
+    [Authorize(Policy = "Moderator")]
+    public async Task<ActionResult<IEnumerable<UnverifiedQuizDto>>> UnverifiedQuizzes()
+    {
+        var quizCommentCounts = await db.QuizAuditComments
+            .Where(c => !c.IsResolved)
+            .GroupBy(c => c.QuizId)
+            .Select(g => new { QuizId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.QuizId, x => x.Count);
+
+        var questionCommentCounts = await db.QuestionAuditComments
+            .Where(c => !c.IsResolved)
+            .Join(db.Questions, c => c.QuestionId, q => q.Id, (c, q) => q.QuizId)
+            .GroupBy(quizId => quizId)
+            .Select(g => new { QuizId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.QuizId, x => x.Count);
+
+        var answerCommentCounts = await db.AnswerAuditComments
+            .Where(c => !c.IsResolved)
+            .Join(db.Answers, c => c.AnswerId, a => a.Id, (c, a) => a.QuestionId)
+            .Join(db.Questions, questionId => questionId, q => q.Id, (questionId, q) => q.QuizId)
+            .GroupBy(quizId => quizId)
+            .Select(g => new { QuizId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.QuizId, x => x.Count);
+
+        var quizzes = await db.Quizzes
+            .Where(q => q.Verified != true)
+            .Include(q => q.Topic).ThenInclude(t => t!.Chapter).ThenInclude(c => c!.Subject)
+            .AsNoTracking()
+            .OrderBy(q => q.CreatedAt)
+            .ToListAsync();
+
+        var items = quizzes.Select(q =>
+        {
+            var unresolvedCount = quizCommentCounts.GetValueOrDefault(q.Id)
+                + questionCommentCounts.GetValueOrDefault(q.Id)
+                + answerCommentCounts.GetValueOrDefault(q.Id);
+
+            return new UnverifiedQuizDto(q.Id, q.Name, q.TopicId, q.Topic?.Name,
+                q.Topic?.ChapterId, q.Topic?.Chapter?.Name,
+                q.Topic?.Chapter?.SubjectId, q.Topic?.Chapter?.Subject?.Name,
+                q.CreatedAt, unresolvedCount);
+        }).ToList();
+
+        return items;
     }
 
     // ---- Verification log (read-only; written by POST /quizzes/{id}/verify) ----

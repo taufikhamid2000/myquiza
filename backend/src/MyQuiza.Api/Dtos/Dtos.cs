@@ -49,7 +49,10 @@ public record ResolveAuditCommentDto(bool IsResolved);
 // action: 'verified' | 'unverified' | 'rejected' — written automatically by the verify endpoint
 public record VerificationLogEntryDto(Guid Id, Guid AdminUserId, string Action, string? Reason, DateTime CreatedAt);
 // Cross-quiz moderator dashboard aggregate — "today" is UTC calendar day.
-public record AuditSummaryDto(int UnresolvedQuizComments, int UnresolvedQuestionComments, int UnresolvedAnswerComments, int VerifiedToday, int UnverifiedToday, int RejectedToday);
+public record AuditSummaryDto(int UnresolvedQuizComments, int UnresolvedQuestionComments, int UnresolvedAnswerComments, int VerifiedToday, int UnverifiedToday, int RejectedToday, int UnverifiedQuizCount);
+// Review queue: quizzes awaiting moderation, with denormalized ancestry + rolled-up
+// unresolved-comment count (quiz + question + answer comments, all attributed to the quiz).
+public record UnverifiedQuizDto(Guid Id, string Name, Guid TopicId, string? TopicName, Guid? ChapterId, string? ChapterName, Guid? SubjectId, string? SubjectName, DateTime? CreatedAt, int UnresolvedCommentCount);
 
 // ---- Attempts ----
 public record SubmitAnswerDto(Guid QuestionId, IReadOnlyList<Guid> SelectedAnswerIds);
