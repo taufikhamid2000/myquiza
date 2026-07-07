@@ -8,9 +8,9 @@ public record TopicBreadcrumbDto(Guid Id, string Name, Guid? ChapterId, string? 
 
 // ---- Content tree authoring (moderator-gated, same policy as includeDisabled) ----
 // ---- Admin bulk tree read (avoids an O(subjects x chapters) client-side fan-out) ----
-public record TopicTreeDto(Guid Id, string Name, int OrderIndex);
-public record ChapterTreeDto(Guid Id, string Name, int Form, int OrderIndex, IReadOnlyList<TopicTreeDto> Topics);
-public record SubjectTreeDto(Guid Id, string Name, string Slug, bool IsDisabled, IReadOnlyList<ChapterTreeDto> Chapters);
+public record TopicTreeDto(Guid Id, string Name, int OrderIndex, DateTime CreatedAt, int QuizCount);
+public record ChapterTreeDto(Guid Id, string Name, int Form, int OrderIndex, string? Description, int QuizCount, IReadOnlyList<TopicTreeDto> Topics);
+public record SubjectTreeDto(Guid Id, string Name, string Slug, string? Description, bool IsDisabled, int QuizCount, IReadOnlyList<ChapterTreeDto> Chapters);
 
 public record CreateSubjectDto(string Name, string Slug, string? Description = null, string? Icon = null, int? OrderIndex = null, string? Category = null, int? CategoryPriority = null);
 public record UpdateSubjectDto(string? Name, string? Slug, string? Description, string? Icon, int? OrderIndex, string? Category, int? CategoryPriority, bool? IsDisabled);

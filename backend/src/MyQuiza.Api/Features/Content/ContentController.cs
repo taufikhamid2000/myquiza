@@ -76,6 +76,9 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
     /// Full nested subjects -> chapters -> topics tree in one call, for admin UIs that
     /// would otherwise fan out into subjects * chapters individual requests. Includes
     /// disabled subjects (moderator-only) since admin tooling needs to see everything.
+    /// Quiz counts are aggregated bottom-up from a single grouped count query rather than
+    /// loading full quiz entities (which Include(...).Quizzes would otherwise pull in).
+    /// Note: topic count per chapter is just chapter.topics.length — not a separate field.
     /// </summary>
     [HttpGet("api/v1/content-tree")]
     [Authorize(Policy = "Moderator")]
@@ -87,13 +90,25 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
             .OrderBy(s => s.CategoryPriority ?? 999).ThenBy(s => s.OrderIndex ?? 0).ThenBy(s => s.Name)
             .ToListAsync();
 
-        var tree = subjects.Select(s => new SubjectTreeDto(
-            s.Id, s.Name, s.Slug, s.IsDisabled,
-            s.Chapters.OrderBy(c => c.OrderIndex).Select(c => new ChapterTreeDto(
-                c.Id, c.Name, c.Form, c.OrderIndex,
-                c.Topics.OrderBy(t => t.OrderIndex).Select(t => new TopicTreeDto(t.Id, t.Name, t.OrderIndex)).ToList()
-            )).ToList()
-        )).ToList();
+        var quizCountsByTopic = await db.Quizzes
+            .GroupBy(q => q.TopicId)
+            .Select(g => new { TopicId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TopicId, x => x.Count);
+
+        var tree = subjects.Select(s =>
+        {
+            var chapterDtos = s.Chapters.OrderBy(c => c.OrderIndex).Select(c =>
+            {
+                var topicDtos = c.Topics.OrderBy(t => t.OrderIndex).Select(t =>
+                    new TopicTreeDto(t.Id, t.Name, t.OrderIndex, t.CreatedAt, quizCountsByTopic.GetValueOrDefault(t.Id))
+                ).ToList();
+                return new ChapterTreeDto(c.Id, c.Name, c.Form, c.OrderIndex, c.Description,
+                    topicDtos.Sum(t => t.QuizCount), topicDtos);
+            }).ToList();
+
+            return new SubjectTreeDto(s.Id, s.Name, s.Slug, s.Description, s.IsDisabled,
+                chapterDtos.Sum(c => c.QuizCount), chapterDtos);
+        }).ToList();
 
         return tree;
     }
