@@ -6,6 +6,11 @@ public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int Or
 public record TopicDto(Guid Id, Guid? ChapterId, string Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int OrderIndex);
 
 // ---- Content tree authoring (moderator-gated, same policy as includeDisabled) ----
+// ---- Admin bulk tree read (avoids an O(subjects x chapters) client-side fan-out) ----
+public record TopicTreeDto(Guid Id, string Name, int OrderIndex);
+public record ChapterTreeDto(Guid Id, string Name, int Form, int OrderIndex, IReadOnlyList<TopicTreeDto> Topics);
+public record SubjectTreeDto(Guid Id, string Name, string Slug, bool IsDisabled, IReadOnlyList<ChapterTreeDto> Chapters);
+
 public record CreateSubjectDto(string Name, string Slug, string? Description = null, string? Icon = null, int? OrderIndex = null, string? Category = null, int? CategoryPriority = null);
 public record UpdateSubjectDto(string? Name, string? Slug, string? Description, string? Icon, int? OrderIndex, string? Category, int? CategoryPriority, bool? IsDisabled);
 public record CreateChapterDto(Guid SubjectId, string Name, int Form, int OrderIndex);

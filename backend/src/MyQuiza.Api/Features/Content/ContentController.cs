@@ -72,6 +72,32 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         return items;
     }
 
+    /// <summary>
+    /// Full nested subjects -> chapters -> topics tree in one call, for admin UIs that
+    /// would otherwise fan out into subjects * chapters individual requests. Includes
+    /// disabled subjects (moderator-only) since admin tooling needs to see everything.
+    /// </summary>
+    [HttpGet("api/v1/content-tree")]
+    [Authorize(Policy = "Moderator")]
+    public async Task<ActionResult<IEnumerable<SubjectTreeDto>>> ContentTree()
+    {
+        var subjects = await db.Subjects
+            .Include(s => s.Chapters).ThenInclude(c => c.Topics)
+            .AsNoTracking()
+            .OrderBy(s => s.CategoryPriority ?? 999).ThenBy(s => s.OrderIndex ?? 0).ThenBy(s => s.Name)
+            .ToListAsync();
+
+        var tree = subjects.Select(s => new SubjectTreeDto(
+            s.Id, s.Name, s.Slug, s.IsDisabled,
+            s.Chapters.OrderBy(c => c.OrderIndex).Select(c => new ChapterTreeDto(
+                c.Id, c.Name, c.Form, c.OrderIndex,
+                c.Topics.OrderBy(t => t.OrderIndex).Select(t => new TopicTreeDto(t.Id, t.Name, t.OrderIndex)).ToList()
+            )).ToList()
+        )).ToList();
+
+        return tree;
+    }
+
     // ---- Subjects ----
 
     [HttpPost("api/v1/subjects")]
