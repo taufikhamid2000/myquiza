@@ -1,7 +1,7 @@
 namespace MyQuiza.Api.Dtos;
 
 // ---- Content tree ----
-public record SubjectDto(Guid Id, string Name, string Slug, string? Description, string? Icon, string? Category, int? OrderIndex, bool IsDisabled = false);
+public record SubjectDto(Guid Id, string Name, string Slug, string? Description, string? Icon, string? Category, int? OrderIndex, bool IsDisabled = false, int? CategoryPriority = null);
 public record ChapterDto(Guid Id, Guid? SubjectId, string Name, int Form, int OrderIndex);
 public record TopicDto(Guid Id, Guid? ChapterId, string Name, string? Description, int? DifficultyLevel, int? TimeEstimateMinutes, int OrderIndex);
 

@@ -25,7 +25,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
 
         var items = await query
             .OrderBy(s => s.CategoryPriority ?? 999).ThenBy(s => s.OrderIndex ?? 0).ThenBy(s => s.Name)
-            .Select(s => new SubjectDto(s.Id, s.Name, s.Slug, s.Description, s.Icon, s.Category, s.OrderIndex, s.IsDisabled))
+            .Select(s => new SubjectDto(s.Id, s.Name, s.Slug, s.Description, s.Icon, s.Category, s.OrderIndex, s.IsDisabled, s.CategoryPriority))
             .ToListAsync();
         return items;
     }
@@ -97,7 +97,7 @@ public class ContentController(AppDbContext db, IAuthorizationService authz) : C
         db.Subjects.Add(subject);
         await db.SaveChangesAsync();
 
-        return new SubjectDto(subject.Id, subject.Name, subject.Slug, subject.Description, subject.Icon, subject.Category, subject.OrderIndex, subject.IsDisabled);
+        return new SubjectDto(subject.Id, subject.Name, subject.Slug, subject.Description, subject.Icon, subject.Category, subject.OrderIndex, subject.IsDisabled, subject.CategoryPriority);
     }
 
     [HttpPatch("api/v1/subjects/{id:guid}")]
