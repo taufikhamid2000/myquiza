@@ -3,8 +3,10 @@
 # (so these paths and the Dockerfile resolve correctly).
 #
 # NOTE: unlike BilikSewa, this service does NOT provision a Render database —
-# it connects to EduBridge's existing Supabase Postgres. So there is no `databases:` block;
-# the connection string is a dashboard-set secret instead.
+# it connects to the shared master_db Supabase Postgres (ref hmkjszolqnpcsoatrgcu),
+# reading/writing EduBridge's data in the `edubridge` schema there (migrated from the
+# standalone EduBridge project, ref fbxcmlrwydbguzjnktag). So there is no `databases:`
+# block; the connection string is a dashboard-set secret instead.
 
 services:
   - type: web
@@ -24,9 +26,9 @@ services:
         value: authenticated
       # ---- Secrets: set these in the Render dashboard (not stored in git) ----
       - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
-        sync: false               # EduBridge's Supabase Postgres (session pooler) connection string
+        sync: false               # master_db's Supabase Postgres (session pooler) connection string, ref hmkjszolqnpcsoatrgcu
       - key: SUPABASE__ISSUER
-        sync: false               # https://<your-project-ref>.supabase.co/auth/v1 — validates the iss claim
+        sync: false               # https://hmkjszolqnpcsoatrgcu.supabase.co/auth/v1 — validates the iss claim
       # This project signs tokens with the legacy HS256 secret (its JWKS endpoint is empty),
       # so the API validates against the shared JWT secret rather than JWKS. Required.
       # Find it in Supabase: Settings -> API -> JWT Settings -> JWT Secret (a raw string, not a JWT).

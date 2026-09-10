@@ -4,7 +4,9 @@ using MyQuiza.Api.Models;
 namespace MyQuiza.Api.Data;
 
 /// <summary>
-/// Maps onto EduBridge's EXISTING Supabase (PostgreSQL) schema.
+/// Maps onto EduBridge's data, now migrated into the `edubridge` schema of the shared
+/// master_db Supabase project (ref hmkjszolqnpcsoatrgcu). Previously this pointed at the
+/// standalone EduBridge Supabase project's `public` schema (ref fbxcmlrwydbguzjnktag).
 /// This context owns NO migrations — EduBridge's supabase/migrations remain the schema source of truth.
 /// Never call EnsureCreated()/Migrate() against this database.
 /// Column names resolve to snake_case via EFCore.NamingConventions (see Program.cs).
@@ -33,6 +35,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        // All tables now live in master_db's `edubridge` schema (was `public` in the
+        // standalone EduBridge project).
+        b.HasDefaultSchema("edubridge");
+
         b.Entity<Subject>(e =>
         {
             e.ToTable("subjects");

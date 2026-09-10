@@ -37,8 +37,8 @@ Set these via environment variables or user-secrets (never commit secrets):
 
 | Key | Description |
 |-----|-------------|
-| `ConnectionStrings__DefaultConnection` | EduBridge's Supabase Postgres connection string (session pooler). Connect with a role that bypasses RLS — the API enforces authorization itself. |
-| `Supabase__Issuer` | `https://<project-ref>.supabase.co/auth/v1` (enables JWKS validation) |
+| `ConnectionStrings__DefaultConnection` | master_db's Supabase Postgres connection string (session pooler, ref `hmkjszolqnpcsoatrgcu`), targeting the `edubridge` schema. Connect with a role that bypasses RLS — the API enforces authorization itself. |
+| `Supabase__Issuer` | `https://hmkjszolqnpcsoatrgcu.supabase.co/auth/v1` (enables JWKS validation) |
 | `Supabase__JwtSecret` | *Alternative to Issuer:* legacy HS256 project JWT secret |
 | `Supabase__Audience` | Defaults to `authenticated` |
 
